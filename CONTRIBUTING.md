@@ -12,6 +12,20 @@ Built against a 24-hour clock. That shapes everything here: scope discipline mat
 
 If a decision in `docs/adr/` looks wrong, read the ADR before arguing with it — several of them deliberately reject the obvious option, and the reasoning is written down.
 
+## Who owns what
+
+Split by folder, so two people rarely touch the same file. Stay inside your own area; if you need something changed in someone else's, ask rather than reaching in.
+
+| Owner | Area | Folders |
+|---|---|---|
+| **Kay** | Project Checkpoint — Requirements, Tradeoff, test spec, generate, diagnose, and all system prompts. Plus integration and demo rehearsal | `src/app/checkpoint/`, `src/lib/prompts/`, `src/app/api/chat/`, `src/app/api/generate/` |
+| **Niyi** | Shared state model, onboarding, Tier placement, path view, the unlock | `src/lib/state/`, `src/app/onboarding/`, `src/components/path/` |
+| **Tola** | Topic loop — route out to NeetCode, paste-back, running solutions, showing results | `src/app/topic/`, `src/components/results/`, `src/content/` |
+
+**`src/lib/state/` blocks everyone.** Agree its shape before the other two areas start, then leave it alone. Changing it later means changing all three areas at once.
+
+**`src/lib/execution/` is done and should not be edited.** Call `runTests()` from `@/lib/execution` and treat the rest as sealed — see ADR-0005 for why that boundary exists.
+
 ## Setup
 
 ```bash
@@ -21,7 +35,7 @@ npm run build    # production build
 npm run lint     # eslint
 ```
 
-Create `.env.local` with `ANTHROPIC_API_KEY=...`. The key is used only from server routes and must never reach the client. Code execution uses the public Piston API, which needs no key.
+Create `.env.local` with `ANTHROPIC_API_KEY=...`. The key is used only from server routes and must never reach the client. Code execution uses the public Judge0 CE instance, which needs no key.
 
 ## Commits
 

@@ -35,7 +35,7 @@ Create `.env.local`:
 ANTHROPIC_API_KEY=...
 ```
 
-The key is used only from server routes and must never reach the client. Code execution runs against the public Piston API, which needs no key.
+The key is used only from server routes and must never reach the client. Code execution runs against the public Judge0 CE instance, which needs no key.
 
 ## Stack
 

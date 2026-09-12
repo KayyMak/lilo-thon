@@ -99,7 +99,7 @@ Successful runs are cached by a hash of language, source and cases. This guards 
 
 ## Server routes
 
-- `POST /api/run` — takes `{ language, source, entryPoint, testCases }`, wraps the source in the runner template, calls Piston, returns per-case `{ passed, actual, expected, stderr }`. The only thing in the system permitted to judge correctness.
+- `POST /api/run` — takes `{ language, source, entryPoint, cases }`, wraps the source in the harness, calls Judge0, returns `{ ok, results, ms, engine, cached }` with one `{ passed, actual, error, label }` per case. The only thing in the system permitted to judge correctness. **Built and verified.**
 - `POST /api/chat` — streams. Takes a `surface` discriminator and the relevant slice of state.
 - `POST /api/generate` — takes `{ requirements, testSpec, language, entryPoint }`, returns implementation source only.
 
@@ -117,7 +117,7 @@ Four chat surfaces, one generation surface. Each gets its own system prompt, eac
 
 Applying the subset that changes a decision on these screens. The remaining laws from the sheet reduce to using one component set consistently, which is assumed.
 
-- **Doherty Threshold** — the hazard. Piston and the model are both far slower than 400ms. Never show a bare spinner. Stream tokens as they arrive; render one skeleton row per test case immediately and flip each to pass or fail as results land. Acknowledge every click inside 100ms even when the work takes eight seconds.
+- **Doherty Threshold** — the hazard. A Judge0 run takes about a second and the model is slower still, both far past 400ms. Never show a bare spinner. Stream tokens as they arrive; render one skeleton row per test case immediately and flip each to pass or fail as results land. Acknowledge every click inside 100ms even when the work takes eight seconds.
 - **Zeigarnik Effect** — the path view must always show something visibly unfinished. Locked Topics stay on screen; a progress indicator sits at partial fill.
 - **Goal-Gradient Effect** — state the distance explicitly: "1 Topic until your first Project". The goal has to look close, because it is.
 - **Von Restorff Effect** — when the Checkpoint unlocks it takes the only accent colour on the page. One highlighted thing, never two.
@@ -132,20 +132,21 @@ Applying the subset that changes a decision on these screens. The remaining laws
 
 ## Build order
 
-Riskiest thing first. Piston is the single external dependency that can sink the build, so it gets proven before anything is built on top of it.
+Riskiest thing first — execution was the one external dependency that could sink the build, so it was proven before anything got built on top of it.
 
-| Hours | Work |
-|---|---|
-| 0–2 | Scaffold, state model and reducer, static path view |
-| 2–4 | ~~Execution spike~~ **done.** Judge0 wired up and verified against 13 cases |
-| 4–6 | Onboarding, Tier placement, language choice |
-| 6–9 | Topic view, NeetCode route-out, paste-back, verification, Topic completion |
-| 9–10 | The unlock. Animate it |
-| 10–14 | Requirements and Tradeoff phases |
-| 14–18 | Test Specification UI, generate, run, diagnose, re-prompt loop |
-| 18–21 | Polish, both Peak-End moments, empty and error states |
-| 21–23 | Rehearse the spine end to end at least three times. Fix what breaks |
-| 23–24 | Buffer. Do not start anything new |
+The hours below are a rough shape, not a schedule. What matters is the order, since each block depends on the one before it, and the rule at the end about stopping to rehearse.
+
+| Roughly | Work | Owner |
+|---|---|---|
+| 0–2 | Scaffold, state model and reducer, static path view | Niyi |
+| 2–4 | ~~Execution spike~~ **done.** Judge0 wired up and verified against 13 cases | — |
+| 4–6 | Onboarding, Tier placement, language choice | Niyi |
+| 6–9 | Topic view, NeetCode route-out, paste-back, verification, Topic completion | Tola |
+| 9–10 | The unlock. Animate it | Niyi |
+| 10–14 | Requirements and Tradeoff phases | Kay |
+| 14–18 | Test Specification UI, generate, run, diagnose, re-prompt loop | Kay, Niyi floating in |
+| 18–21 | Polish, both Peak-End moments, empty and error states | All |
+| Last 3h | **Stop building.** Rehearse the spine end to end at least three times, fix what breaks, start nothing new | All |
 
 ## Risks
 

@@ -12,6 +12,38 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* The Checkpoint unlock, one of the two moments the demo is remembered by (Peak-End Rule). */
+@theme {
+  --animate-unlock: unlock 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-unlock-marker: unlock-marker 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+  @keyframes unlock {
+    0% {
+      transform: scale(0.94);
+      box-shadow: 0 0 0 0 rgb(124 58 237 / 0.55);
+    }
+    45% {
+      transform: scale(1.04);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 18px rgb(124 58 237 / 0);
+    }
+  }
+
+  @keyframes unlock-marker {
+    0% {
+      transform: scale(0.4) rotate(-90deg);
+    }
+    60% {
+      transform: scale(1.2) rotate(10deg);
+    }
+    100% {
+      transform: scale(1) rotate(0);
+    }
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;

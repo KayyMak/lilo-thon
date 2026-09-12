@@ -66,7 +66,7 @@ export function CheckpointNode({ phase }: { phase: Phase }) {
       title="Project Checkpoint"
       detail={celebrate ? "Unlocked! Word-frequency counter" : "Word-frequency counter"}
       href="/checkpoint"
-      className={`border-violet-500 bg-violet-50 dark:bg-violet-950/40 ${celebrate ? "motion-safe:animate-unlock" : ""}`}
+      className={`border-violet-500 bg-violet-50 dark:bg-violet-950/40 ${celebrate ? "motion-safe:animate-unlock motion-reduce:animate-unlock-glow" : ""}`}
       markerClassName="border-violet-600 bg-violet-600 text-white"
     >
       <span className="mt-1 flex gap-1.5 text-xs">

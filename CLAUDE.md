@@ -4,17 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-Design is settled and the Next.js scaffold is in place and building clean. No product code is written yet — `src/app/page.tsx` is still the default landing page.
-
-```bash
-npm run dev      # dev server on :3000
-npm run build    # production build
-npm run lint     # eslint
-```
-
 There is no test runner yet. Add one and its commands here when the first test is written.
 
-`CONTEXT.md` is the glossary and the authority on vocabulary — read it before naming anything, and flag conflicts rather than coining synonyms. `docs/adr/` holds the decisions and the reasoning behind them; read all four before proposing architectural changes, because several deliberately reject the obvious option. `plan.md` is the original rough brief and is superseded wherever it disagrees with those two.
+`CONTEXT.md` is the glossary and the authority on vocabulary — read it before naming anything, and flag conflicts rather than coining synonyms. `docs/adr/` holds the decisions and the reasoning behind them; read all of them before proposing architectural changes, because several deliberately reject the obvious option. `plan.md` is the original rough brief and is superseded wherever it disagrees with those two.
 
 ## What it is
 

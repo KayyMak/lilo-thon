@@ -4,7 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-Design is settled; implementation has not started. There is no source code, package manifest, or test suite in the repo yet — only design documents. Add the build, lint, run, and test commands to this file once the project is scaffolded.
+Design is settled and the Next.js scaffold is in place and building clean. No product code is written yet — `src/app/page.tsx` is still the default landing page.
+
+```bash
+npm run dev      # dev server on :3000
+npm run build    # production build
+npm run lint     # eslint
+```
+
+There is no test runner yet. Add one and its commands here when the first test is written.
 
 `CONTEXT.md` is the glossary and the authority on vocabulary — read it before naming anything, and flag conflicts rather than coining synonyms. `docs/adr/` holds the decisions and the reasoning behind them; read all four before proposing architectural changes, because several deliberately reject the obvious option. `plan.md` is the original rough brief and is superseded wherever it disagrees with those two.
 
@@ -22,6 +30,12 @@ The name "lilo-thon" is provisional. Keep it in one constant.
 - **Next.js on Vercel, no database, no auth** (ADR-0004). Progress lives in one serializable state object client-side.
 
 Two standing rules that follow from the above: correctness is decided by *running* code, never by asking a model whether an answer looks right — the model's job is to explain a failure the harness found. And the student never hand-writes implementation code; if a surface invites them to, it contradicts Prompt, Don't Code.
+
+## Commits
+
+Follow `.claude/skills/commit-conventions/SKILL.md`. Conventional Commit subjects in the imperative, under 50 characters where possible and 72 at the outside, one atomic change per commit. Pull request titles use the same format, because a squash merge turns the title into the permanent subject.
+
+Sign-off is not required on this repo. Do not add attribution trailers of any kind.
 
 ## Environment
 

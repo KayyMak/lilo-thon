@@ -31,5 +31,19 @@ run, try `return nums` and invalid Python: neither should complete Arrays.
 Disconnect the network and check that the error allows retry without losing
 the pasted solution. Repeat with JavaScript and the other Tier assignments.
 
-The path screen must link to `/topic/arrays`; its implementation belongs to the
-path owner. Hashing's screen is not implemented here yet.
+## Hashing
+
+After completing Arrays, select **Continue to Hashing** or visit
+`/topic/hashing`. It stays locked until Arrays is complete. Both routes share
+`TopicScreen`. Hashing selects Contains Duplicate, Valid Anagram, or Longest
+Consecutive Sequence based on Tier, using `src/content/hashing.ts`.
+
+For Beginner Python, paste a `Solution` class with
+`def hasDuplicate(self, nums): return len(set(nums)) != len(nums)`.
+First try `return False` and confirm failures leave Hashing incomplete. Then
+run the correct solution: four passes should complete Hashing and unlock the
+Project Checkpoint. Refresh to verify completion and draft persistence.
+Confirm the Arrays draft stays separate, and check the other Tiers and JavaScript.
+
+The path owner should link cards to `/topic/arrays` and `/topic/hashing`.
+Completed Hashing returns to the shared path.

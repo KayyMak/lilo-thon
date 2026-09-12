@@ -26,7 +26,7 @@ The name "lilo-thon" is provisional. Keep it in one constant.
 
 - **24-hour demo budget** (ADR-0001). Shortcuts are deliberate. Prefer shortcuts that are additive to undo over ones that would reshape the data model or the learner-facing flow.
 - **No teaching content of our own** (ADR-0002). NeetCode explains Topics and hosts Practice Problems. If you find yourself writing an explanation of how hash maps work, stop — that is the failure mode this decision exists to prevent.
-- **Students pick their own language** (ADR-0003). Code therefore runs on a hosted execution service (Piston, or Judge0), never in the browser. A Test Specification is collected as data — inputs, expected outputs, named edge cases — never as language-specific test code.
+- **Students pick their own language** (ADR-0003, ADR-0005). Code runs on Judge0, never in the browser. Everything about execution lives behind `src/lib/execution` — call `runTests()` and never reach past it, because the service has been swapped once already. A Test Specification is collected as data — inputs, expected outputs, named edge cases — never as language-specific test code.
 - **Next.js on Vercel, no database, no auth** (ADR-0004). Progress lives in one serializable state object client-side.
 
 Two standing rules that follow from the above: correctness is decided by *running* code, never by asking a model whether an answer looks right — the model's job is to explain a failure the harness found. And the student never hand-writes implementation code; if a surface invites them to, it contradicts Prompt, Don't Code.
@@ -40,3 +40,13 @@ Sign-off is not required on this repo. Do not add attribution trailers of any ki
 ## Environment
 
 Windows 11; the primary shell is PowerShell 5.1, where `&&`, `||`, and ternary/null-coalescing operators are all parser errors. A Bash tool is also available for POSIX syntax — pick one and match its syntax rather than mixing them.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

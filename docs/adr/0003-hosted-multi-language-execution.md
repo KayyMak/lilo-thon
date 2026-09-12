@@ -5,3 +5,5 @@ Students are never forced into a particular programming language, for either a P
 One service covers both uses: verifying a solution brought back from NeetCode, and running the AI-generated implementation against the student's tests.
 
 The knock-on effect is that a Test Specification must be collected as data rather than as test code, because test code would be language-specific. This turns out to reinforce Prompt, Don't Code rather than compromise it — the student states behaviour and lilo-thon generates the runner for their chosen language, so the student stays at the level of specification throughout.
+
+**Amended by ADR-0005.** The service is Judge0, not Piston, which went whitelist-only before we depended on it. The decision recorded here — students choose the language, so execution is hosted rather than in-browser — is unchanged.

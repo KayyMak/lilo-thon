@@ -79,11 +79,23 @@ Placement is plain logic, no model call.
 
 ## Execution
 
-Piston (`https://emkc.org/api/v2/piston/execute`), with Judge0 as the fallback if rate limits bite.
+**Built and verified.** Judge0 CE (`https://ce.judge0.com`), no API key required. Piston was the original choice and is unusable — see ADR-0005.
 
-A **runner template** per language wraps the student's or the AI's source: read test cases as JSON on stdin, call the entry point, print results as JSON. Templates live in one directory, one file each, so adding a language is a single file.
+Everything lives in `src/lib/execution`, and nothing outside that directory knows which service is in use:
 
-Ship **Python and JavaScript**. Be honest in the UI about which languages are live rather than offering a long list that half-works — Java and C++ are the first two to add if there is time. This is the one place the build falls short of "any language", and it is a template-writing cost, not a design compromise.
+| File | Job |
+|---|---|
+| `types.ts` | The contract. `runTests(request) → outcome` |
+| `languages.ts` | The registry. One entry per language — adding a language is adding an entry |
+| `harness.ts` | Per-language wrapper that calls the student's function and reports a verdict |
+| `judge0.ts` | The adapter. The only file that knows Judge0 exists |
+| `index.ts` | Caching, plus the only function the rest of the app may call |
+
+`POST /api/run` takes `{ language, source, entryPoint, cases }` and returns per-case results. A wrong answer is a `200` with `passed: false` — only a malformed request is a `4xx`, and only transport trouble is a `502`.
+
+Live languages are **Python and JavaScript**. The limit is not Judge0, which offers around 90; it is that each harness must be written in the student's own language and must parse JSON, which Python and JavaScript do natively and Java and C++ do not. Adding those means inlining test inputs as literals instead of passing them on stdin. Show only the languages that actually work rather than a long list that half-works.
+
+Successful runs are cached by a hash of language, source and cases. This guards against the public instance's undocumented rate limits during a build, not against slowness.
 
 ## Server routes
 
@@ -125,7 +137,7 @@ Riskiest thing first. Piston is the single external dependency that can sink the
 | Hours | Work |
 |---|---|
 | 0–2 | Scaffold, state model and reducer, static path view |
-| 2–4 | **Piston spike** — one hardcoded solution, running, returning pass/fail. Do not proceed until green |
+| 2–4 | ~~Execution spike~~ **done.** Judge0 wired up and verified against 13 cases |
 | 4–6 | Onboarding, Tier placement, language choice |
 | 6–9 | Topic view, NeetCode route-out, paste-back, verification, Topic completion |
 | 9–10 | The unlock. Animate it |
@@ -137,7 +149,7 @@ Riskiest thing first. Piston is the single external dependency that can sink the
 
 ## Risks
 
-- **Piston rate-limits or is down on demo day.** Cache successful runs by source hash. Keep a recorded video of the working spine as a fallback.
+- **Judge0 rate-limits or goes whitelist-only.** Exactly what Piston did, so treat it as likely rather than unlucky. Caching by source hash is in place. The judged artifact is a recorded demo, so an outage during judging cannot break the submission, and the execution interface keeps an in-browser engine available as a contained swap.
 - **Model latency stalls the demo.** Sonnet 5, short prompts, stream everything, cap response length.
 - **The judge opens a new tab and loses all progress.** Known and accepted. Do not demo in a fresh tab.
 - **Generated code that never passes the tests.** Pin the entry point name in the generate prompt and echo the test spec into it verbatim. Rehearse with the exact demo inputs.

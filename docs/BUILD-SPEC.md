@@ -13,7 +13,7 @@ Do not build these. Each was considered and cut.
 - Authentication, user accounts, a database
 - Any explanation of a DSA concept authored by us (NeetCode does this)
 - Peer collaboration, PR review — hard-blocked by client-side state, see ADR-0004
-- More than one completable Topic
+- More than two completable Topics
 - Letting the student edit generated implementation code by hand
 
 ## Acceptance test: the demo spine
@@ -22,13 +22,14 @@ The build is done when a stranger can do this unaided, with no developer-only bu
 
 1. Answers four onboarding questions and is placed in a Tier
 2. Sees a path: **Arrays** unlocked, **Hashing** locked, **Project Checkpoint** locked
-3. Opens Arrays and is routed out to NeetCode's Two Sum
-4. Returns, pastes a Python solution, it actually runs, it passes, Arrays completes
-5. Project Checkpoint unlocks. This is the product thesis; it must feel like an event
-6. Requirements Phase — types something vague, gets pushed back on
-7. Tradeoff Phase — array or hashmap, and why; reasoning is evaluated
-8. Test Specification — enters three input/expected pairs, prompts, implementation appears
-9. Tests run, some fail, student re-prompts with the failure, all pass
+3. Opens Arrays and is routed out to the NeetCode problem for their Tier
+4. Returns, pastes a Python solution, it actually runs, it passes, Arrays completes and Hashing unlocks
+5. Does the same for Hashing
+6. Project Checkpoint unlocks. This is the product thesis; it must feel like an event
+7. Requirements Phase — types something vague, gets pushed back on
+8. Tradeoff Phase — array or hashmap, and why; reasoning is evaluated
+9. Test Specification — enters three input/expected pairs, prompts, implementation appears
+10. Tests run, some fail, student re-prompts with the failure, all pass
 
 ## Stack
 
@@ -54,7 +55,7 @@ type ProgressState = {
     phase: Phase
     projectId: string
     requirements: string[]         // statements the coach accepted
-    tradeoff?: { choice: string; reasoning: string; verdict: string }
+    tradeoff?: { choice: string; reasoning: string; verdict: string; retryUsed: boolean }
     testSpec: Array<{ input: unknown[]; expected: unknown; label?: string }>
     generated?: { language: string; source: string }
     lastRun?: RunResult
@@ -66,16 +67,32 @@ Write every state change through one reducer. Persist on change. Rehydrate on lo
 
 ## Content (hardcoded — this is deliberate)
 
-- **Topics**: `arrays` (starts unlocked), `hashing` (locked, visible, not completable). Hashing exists to prove the sequence repeats.
-- **Practice Problems**: NeetCode's Two Sum. Entry point `twoSum`, test cases written by hand.
+- **Topics**: `arrays` (starts unlocked), then `hashing` (unlocks when Arrays completes). Both are completable, and the Checkpoint unlocks only when both are complete — the Tradeoff Phase asks array or hashmap, and its options must come from Topics the student has actually completed.
+- **Practice Problems**: one per Topic per Tier, test cases written by hand.
+
+  | Topic | Beginner | Intermediate | Advanced |
+  |---|---|---|---|
+  | Arrays | Concatenation of Array | Majority Element | Product of Array Except Self |
+  | Hashing | Contains Duplicate | Valid Anagram | Longest Consecutive Sequence |
+
+  Picked so each has exactly one correct return value. The harness compares the returned value exactly, so problems whose answer may come back in any order (Two Sum, Group Anagrams, Top K Frequent Elements) would fail correct solutions. Top K Frequent Elements is also ruled out because it is the Checkpoint project in miniature. Take each entry point from the function name on the NeetCode page, not from LeetCode, because students paste NeetCode's starter code and the names can differ.
 - **Unlock gate**: `REQUIRED_PROBLEMS_PER_TOPIC = 1`. A named constant, not a magic number — the glossary says a Topic takes several problems, and one is a demo setting, not the concept.
 - **Project**: word-frequency counter returning the top N words. Chosen because it genuinely needs a hashmap for counts and an array for ordering, so the Tradeoff Phase is real rather than staged, and its behaviour expresses cleanly as input/expected data.
 
 ## Tier
 
-Tier affects exactly two things: which NeetCode difficulty the student is routed to, and how much scaffolding the coach offers before making the student struggle. One field on a problem, one line in a system prompt. Nothing else.
+Tier affects exactly two things: which NeetCode difficulty the student is routed to, and how much scaffolding the coach offers before making the student struggle. One field on a problem, one line in a system prompt. Nothing else — in particular, Tier never skips Topics. Every student starts at Arrays.
 
-Placement is plain logic, no model call.
+Placement is plain logic, no model call. Four questions, each answer worth 0–3 in the order listed:
+
+1. **How much programming have you done?** None yet · One intro course · A few courses or personal projects · An internship or job
+2. **Which could you use to solve a problem without looking anything up?** Loops and lists · Dictionaries or hash maps · Recursion or trees · Graphs or dynamic programming
+3. **How do Easy LeetCode problems usually go for you?** Haven't tried one · Usually stuck · Usually solve them, sometimes with hints · Solve most, working on Mediums
+4. **Given a list of numbers, you need two that add up to a target. What's your first idea?** Not sure yet · Try every pair · Sort the list, then walk inward from both ends · Remember the numbers already seen, and check for each new one's partner
+
+Total 0–4 is Beginner, 5–8 Intermediate, 9–12 Advanced. Answering "Not sure yet" on question 4 caps placement at Intermediate: the first three questions are the student's own report, and question 4 is the only one that checks it, so self-report alone cannot earn Advanced. Question 4 is Two Sum, which is deliberately not one of the Practice Problems.
+
+Language choice is its own step after the four questions, not a fifth question.
 
 ## Execution
 
@@ -107,9 +124,9 @@ Successful runs are cached by a hash of language, source and cases. This guards 
 
 Four chat surfaces, one generation surface. Each gets its own system prompt, each is short.
 
-- **hint** — moves a stuck student forward with a question. Never states the answer, never writes code. See Socratic Hint in `CONTEXT.md`.
+- **hint** — moves a stuck student forward with a question. Never states the answer, never writes code. See Socratic Hint in `CONTEXT.md`. Lives on the Topic view: a "Stuck?" button is always visible, and after a failed run the hint receives the failing case. Tier sets how soon it is offered unprompted — Beginner after the first failed run, Intermediate after the second, Advanced never (the button stays). If the student is stuck on the concept rather than the problem, the hint points back to NeetCode instead of explaining it (ADR-0002).
 - **requirements** — challenges vague statements, asks about edge cases (ties, empty input, casing, punctuation). Never proposes an implementation or a data structure. Accepts once there are at least three concrete behaviours and one edge case.
-- **tradeoff** — poses exactly one decision with two named options drawn from completed Topics. Evaluates the student's *reasoning*, not their choice; both options are defensible and the prompt must say so.
+- **tradeoff** — poses exactly one decision with two named options drawn from completed Topics. Evaluates the student's *reasoning*, not their choice; both options are defensible and the prompt must say so. Weak reasoning gets one retry, with the coach saying what is missing; after that the student moves on regardless, with the verdict shown. The model must never be the thing that stops a student from progressing.
 - **diagnose** — given a failing case and the generated source, explains what the failure means. Must not rewrite the code. The student re-prompts; that is the skill being practised.
 - **generate** — implementation only, in the chosen language, matching the entry point name. No commentary, no explanation.
 
@@ -119,7 +136,7 @@ Applying the subset that changes a decision on these screens. The remaining laws
 
 - **Doherty Threshold** — the hazard. A Judge0 run takes about a second and the model is slower still, both far past 400ms. Never show a bare spinner. Stream tokens as they arrive; render one skeleton row per test case immediately and flip each to pass or fail as results land. Acknowledge every click inside 100ms even when the work takes eight seconds.
 - **Zeigarnik Effect** — the path view must always show something visibly unfinished. Locked Topics stay on screen; a progress indicator sits at partial fill.
-- **Goal-Gradient Effect** — state the distance explicitly: "1 Topic until your first Project". The goal has to look close, because it is.
+- **Goal-Gradient Effect** — state the distance explicitly: "2 Topics until your first Project". The goal has to look close, because it is.
 - **Von Restorff Effect** — when the Checkpoint unlocks it takes the only accent colour on the page. One highlighted thing, never two.
 - **Peak-End Rule** — two moments carry the demo: the unlock, and the tests going green. Animate both. The last thing a judge sees must be all-green.
 - **Hick's Law** — onboarding is four questions, at most four options each. No free text.
@@ -141,7 +158,7 @@ The hours below are a rough shape, not a schedule. What matters is the order, si
 | 0–2 | Scaffold, state model and reducer, static path view | Niyi |
 | 2–4 | ~~Execution spike~~ **done.** Judge0 wired up and verified against 13 cases | — |
 | 4–6 | Onboarding, Tier placement, language choice | Niyi |
-| 6–9 | Topic view, NeetCode route-out, paste-back, verification, Topic completion | Tola |
+| 6–9 | Topic view, NeetCode route-out, paste-back, verification, Topic completion, both Topics' problems per Tier, hint button (Kay writes the hint prompt) | Tola |
 | 9–10 | The unlock. Animate it | Niyi |
 | 10–14 | Requirements and Tradeoff phases | Kay |
 | 14–18 | Test Specification UI, generate, run, diagnose, re-prompt loop | Kay, Niyi floating in |

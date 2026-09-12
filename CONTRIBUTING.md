@@ -98,7 +98,7 @@ Don't add these, and don't file issues for them:
 - Accounts, login, a database
 - Any DSA explanation authored by us — NeetCode does that (ADR-0002)
 - Peer collaboration and PR review — hard-blocked by client-side state (ADR-0004)
-- More than one completable Topic
+- More than two completable Topics
 - Any way for a student to hand-edit generated code
 
 ## Before you ask for review

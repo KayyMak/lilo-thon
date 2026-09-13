@@ -117,8 +117,8 @@ Successful runs are cached by a hash of language, source and cases. This guards 
 ## Server routes
 
 - `POST /api/run` — takes `{ language, source, entryPoint, cases }`, wraps the source in the harness, calls Judge0, returns `{ ok, results, ms, engine, cached }` with one `{ passed, actual, error, label }` per case. The only thing in the system permitted to judge correctness. **Built and verified.**
-- `POST /api/chat` — streams. Takes a `surface` discriminator and the relevant slice of state.
-- `POST /api/generate` — takes `{ requirements, testSpec, language, entryPoint }`, returns implementation source only.
+- `POST /api/chat` — streams newline-delimited JSON. Takes a `surface` discriminator and the relevant slice of state, and returns `{ type: "delta" }` prose as it arrives, then one `{ type: "control" }` object carrying the decision the reducer acts on — the coach writes both in one turn and the route splits them. Failures, including a malformed request or a missing key, arrive as `{ type: "error" }` in the same format. **Built.**
+- `POST /api/generate` — takes `{ requirements, testSpec, language, entryPoint, instruction }` plus `previous` on a re-prompt, returns implementation source only. Not streamed: the source is only useful whole, because the next thing that happens to it is a run. `instruction` is the student's own prompt, and the failing cases are deliberately not sent — saying what broke is the student's job. **Built.**
 
 ## AI surfaces
 

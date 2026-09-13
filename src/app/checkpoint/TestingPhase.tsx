@@ -7,7 +7,13 @@ import type { CaseResult, RunOutcome, TestCase } from "@/lib/execution";
 import type { FailingCase, GenerateResponse } from "@/lib/prompts/protocol";
 import { useProgress, type Tier } from "@/lib/state";
 
-import { PROJECT, TEST_SPEC_PLACEHOLDERS } from "./project";
+import {
+  EXAMPLE_TEST_CASE,
+  PROJECT,
+  TEST_SPEC_COLUMNS,
+  TEST_SPEC_PLACEHOLDERS,
+  checkTestCase,
+} from "./project";
 import { emptyRow, rowsFromSpec, specFromRows, type SpecRow } from "./testSpec";
 import { Button, Composer, Notice, Region, Transcript } from "./ui";
 import { useCoach } from "./useCoach";
@@ -49,7 +55,7 @@ export function TestingPhase({ tier }: { tier: Tier }) {
   }
 
   function saveSpec() {
-    const parsed = specFromRows(rows);
+    const parsed = specFromRows(rows, checkTestCase);
     if (!parsed.ok) {
       setSpecError(parsed.detail);
       return;
@@ -147,25 +153,53 @@ export function TestingPhase({ tier }: { tier: Tier }) {
     <div className="space-y-6">
       <Region
         title="Your tests"
-        hint={`Behaviour as data: the arguments ${PROJECT.signature} is called with, and what it must return. Name the edge cases.`}
+        hint={`Each row is one test: if ${PROJECT.signature} is called with this input, it should return this. Include the edge cases.`}
       >
+        <dl className="grid gap-3 text-sm md:grid-cols-3">
+          {Object.values(TEST_SPEC_COLUMNS).map((column) => (
+            <div key={column.heading}>
+              <dt className="font-semibold">{column.heading}</dt>
+              <dd className="text-zinc-600 dark:text-zinc-400">{column.format}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <figure className="space-y-2 rounded-xl bg-zinc-50 p-4 dark:bg-zinc-900">
+          <figcaption className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+            Example test. Write your own below
+          </figcaption>
+          <div className={`grid gap-1 font-mono text-sm md:gap-3 ${ROW_COLUMNS}`}>
+            <code>{EXAMPLE_TEST_CASE.input}</code>
+            <code>{EXAMPLE_TEST_CASE.expected}</code>
+            <span className="font-sans text-zinc-600 dark:text-zinc-400">{EXAMPLE_TEST_CASE.label}</span>
+          </div>
+        </figure>
+
+        <div
+          aria-hidden
+          className={`hidden gap-3 text-xs font-semibold uppercase tracking-wide text-zinc-500 md:grid ${ROW_COLUMNS}`}
+        >
+          <span>{TEST_SPEC_COLUMNS.input.heading}</span>
+          <span>{TEST_SPEC_COLUMNS.expected.heading}</span>
+          <span>{TEST_SPEC_COLUMNS.label.heading}</span>
+        </div>
         <ol className="space-y-4">
           {rows.map((row, index) => (
-            <li key={index} className="grid gap-3 md:grid-cols-[1fr_1fr_10rem]">
+            <li key={index} className={`grid gap-3 ${ROW_COLUMNS}`}>
               <SpecField
-                label={`Case ${index + 1} input`}
+                label={`Case ${index + 1}: ${TEST_SPEC_COLUMNS.input.heading}`}
                 value={row.input}
                 placeholder={TEST_SPEC_PLACEHOLDERS.input}
                 onChange={(input) => editRow(index, { input })}
               />
               <SpecField
-                label={`Case ${index + 1} expected`}
+                label={`Case ${index + 1}: ${TEST_SPEC_COLUMNS.expected.heading}`}
                 value={row.expected}
                 placeholder={TEST_SPEC_PLACEHOLDERS.expected}
                 onChange={(expected) => editRow(index, { expected })}
               />
               <SpecField
-                label={`Case ${index + 1} name`}
+                label={`Case ${index + 1}: ${TEST_SPEC_COLUMNS.label.heading}`}
                 value={row.label}
                 placeholder={TEST_SPEC_PLACEHOLDERS.label}
                 onChange={(label) => editRow(index, { label })}
@@ -198,7 +232,7 @@ export function TestingPhase({ tier }: { tier: Tier }) {
 
       <Region
         title="Prompt for the implementation"
-        hint="You describe it, the AI writes it. Every prompt returns the whole implementation."
+        hint="Describe the behaviour you want and the AI rewrites the code. It only writes code: it can't answer questions, and it keeps working code unless you ask for a change."
       >
         {testSpec.length === 0 ? (
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -303,19 +337,26 @@ function SpecField({
   onChange: (value: string) => void;
 }) {
   return (
-    <input
-      type="text"
-      aria-label={label}
-      value={value}
-      placeholder={placeholder}
-      onChange={(event) => onChange(event.target.value)}
-      spellCheck={false}
-      autoCapitalize="off"
-      autoCorrect="off"
-      className="w-full rounded-xl border border-zinc-400 bg-transparent p-3 font-mono text-sm"
-    />
+    // The column headings carry the label on wide screens; on narrow ones the
+    // columns stack, so each field shows its own.
+    <label className="block space-y-1">
+      <span className="text-xs font-semibold text-zinc-500 md:sr-only">{label}</span>
+      <input
+        type="text"
+        value={value}
+        placeholder={placeholder}
+        onChange={(event) => onChange(event.target.value)}
+        spellCheck={false}
+        autoCapitalize="off"
+        autoCorrect="off"
+        className="w-full rounded-xl border border-zinc-400 bg-transparent p-3 font-mono text-sm"
+      />
+    </label>
   );
 }
+
+/** Shared by the example, the headings and the rows, so the three line up. */
+const ROW_COLUMNS = "md:grid-cols-[1fr_1fr_10rem]";
 
 /** The first case the runner marked failed, paired with what it expected. */
 function firstFailure(testSpec: TestCase[], results: CaseResult[] | null): FailingCase | null {

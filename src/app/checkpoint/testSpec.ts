@@ -106,12 +106,15 @@ export function rowsFromSpec(testSpec: TestCase[]): SpecRow[] {
 
 export type SpecResult = { ok: true; testSpec: TestCase[] } | { ok: false; detail: string };
 
+/** Project-specific shape rules: a fix-it message for a row that can't be right, or null. */
+export type CaseCheck = (input: unknown[], expected: unknown) => string | null;
+
 /**
  * Reads the editor back into a Test Specification. Blank rows are dropped; a
  * half-finished one is an error, because silently ignoring it would run fewer
  * tests than the student thinks they wrote.
  */
-export function specFromRows(rows: SpecRow[]): SpecResult {
+export function specFromRows(rows: SpecRow[], check?: CaseCheck): SpecResult {
   const testSpec: TestCase[] = [];
 
   for (const [index, row] of rows.entries()) {
@@ -126,9 +129,13 @@ export function specFromRows(rows: SpecRow[]): SpecResult {
     const parsedInput = parseArguments(input);
     if (!parsedInput.length) return { ok: false, detail: `Case ${index + 1} needs an input.` };
 
+    const parsedExpected = parseValue(expected);
+    const problem = check?.(parsedInput, parsedExpected);
+    if (problem) return { ok: false, detail: `Case ${index + 1}: ${problem}` };
+
     testSpec.push({
       input: parsedInput,
-      expected: parseValue(expected),
+      expected: parsedExpected,
       ...(label ? { label } : {}),
     });
   }

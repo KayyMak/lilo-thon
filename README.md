@@ -20,7 +20,9 @@ Read these before writing code. They are the design, and they disagree with noth
 
 ```bash
 npm install
-npm run dev
+npm run dev      # dev server on :3000
+npm run build    # production build
+npm run lint     # eslint
 ```
 
 Then open http://localhost:3000.
@@ -38,3 +40,7 @@ The key is used only from server routes and must never reach the client. Code ex
 ## Stack
 
 Next.js 16 (App Router), TypeScript, Tailwind, deployed on Vercel. No database and no authentication — student progress lives in one serializable object in `localStorage`. That is deliberate; see ADR-0001 and ADR-0004.
+
+## Contributing
+
+See `CONTRIBUTING.md` for area ownership, commit conventions, and what is deliberately not being built.

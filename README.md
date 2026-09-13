@@ -1,6 +1,4 @@
-# lilo-thon
-
-*Name is provisional — see `CONTEXT.md`.*
+# unlocked
 
 A learning platform bridging academia and industry for CS students. Onboarding places a student in a Tier, the student clears Topics by solving problems on NeetCode and bringing solutions back to be verified by actually running them, and clearing Topics unlocks a Project Checkpoint where the student directs an AI instead of writing implementation code — stating requirements, reasoning through a tradeoff, then specifying tests and prompting until they pass.
 

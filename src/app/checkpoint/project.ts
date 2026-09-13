@@ -54,7 +54,55 @@ export const TRADEOFF_OPTIONS: Record<TopicId, TradeoffOption> = {
 
 /** Placeholders for the Test Specification rows, in the shape the runner expects. */
 export const TEST_SPEC_PLACEHOLDERS = {
-  input: '"the cat sat on the mat", 1',
-  expected: '["the"]',
+  input: '"your text here", 2',
+  expected: '["word", "word"]',
   label: "ties, empty text, casing…",
 };
+
+/**
+ * What each column of a test row means, in the student's terms. The format is
+ * the part students get wrong, so it is stated outright rather than implied.
+ */
+export const TEST_SPEC_COLUMNS = {
+  input: {
+    heading: "Input",
+    format: 'The text in double quotes, a comma, then how many words to return.',
+  },
+  expected: {
+    heading: "Should return",
+    format: 'A list in square brackets, most frequent first. Use [] when there are no words.',
+  },
+  label: {
+    heading: "What it checks",
+    format: "A short name, so a failure tells you what broke.",
+  },
+};
+
+/**
+ * One case shown above the editor to demonstrate the format. Shown, never
+ * pre-filled: writing the tests is the skill this phase practises, so the
+ * student still authors every case that runs. Any correct implementation
+ * passes it, so it cannot mislead.
+ */
+export const EXAMPLE_TEST_CASE = {
+  input: '"the cat the dog", 1',
+  expected: '["the"]',
+  label: "most frequent word",
+};
+
+/**
+ * Catches rows that parsed but can never describe topWords, with a message that
+ * says how to fix them. A row like `the` for the expected value parses as the
+ * string "the", and would otherwise fail every run for a reason the student
+ * cannot see.
+ */
+export function checkTestCase(input: unknown[], expected: unknown): string | null {
+  const [text, n] = input;
+  if (input.length !== 2 || typeof text !== "string" || !Number.isInteger(n)) {
+    return 'Input needs the text in double quotes, a comma, then a whole number, like "the cat the dog", 1.';
+  }
+  if (!Array.isArray(expected) || !expected.every((word) => typeof word === "string")) {
+    return 'Should return needs a list of words in square brackets, like ["the"], or [] for none.';
+  }
+  return null;
+}
